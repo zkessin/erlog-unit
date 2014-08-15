@@ -1,0 +1,4 @@
+%-*-Prolog-*-
+
+
+test("TEST") :- true.
