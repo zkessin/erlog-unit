@@ -26,5 +26,16 @@ load_file_and_assertions(PL, File, Dir, TestDir) ->
 
 find_tests(PL) ->
     {{succeed, R}, PL@} = erlog:prove(PL, {findall, {'X'},{clause, {test, {'X'}}, {'Clause'}},{'Tests'}}),
-    ?debugFmt("~p", [R]),
     {ok,proplists:get_value('Tests',R) , PL@}.
+
+execute_tests(PL) ->
+    {ok,Tests, PL@ } = find_tests(PL),
+    Result = lists:map(fun(TestName) -> 
+			       case erlog:prove(PL, {test, TestName}) of
+				   {{succeed,_} , _} ->
+				       {TestName, true};
+				   {fail, _} ->
+				       {TestName, false}
+			       end
+		       end, Tests),
+    {ok , Result}.

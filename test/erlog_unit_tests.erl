@@ -30,23 +30,60 @@ find_tests_test() ->
     File		= "example.pl",
     {ok, PL@}		= erlog_unit:load_file_and_assertions(PL@, File, ?DIR, ?TEST_DIR),
 
-    ?assertMatch({ok, ["TEST"], PL@}, erlog_unit:find_tests(PL@)),    
+    ?assertMatch({ok, ["TEST"], _}, erlog_unit:find_tests(PL@)),    
     true.
 
 spawn_and_execute_tests_test() ->
-    nyi.
+    {ok, PL@}		= erlog:new(),
+    File		= "example.pl",
+    {ok, PL@}		= erlog_unit:load_file_and_assertions(PL@, File, ?DIR, ?TEST_DIR),
+    {ok, Result}        = erlog_unit:execute_tests(PL@),
+    ?assertEqual([{"TEST",true}], Result),
+    true.
+
+
+assertFailure(PL@, Clause, Expect) ->
+    {Pid,Ref}  = spawn_monitor(fun() -> erlog:prove(PL@, Clause) end),
+    receive
+	{'DOWN',Ref, _, Pid, Value} ->
+	    ?assertEqual(Expect, Value)
+    after 50 ->
+	    exit("Process Not Exiting")
+    end.
+
 
 assert_true_test() ->
-    nyi.
+    {ok, PL@}		= erlog:new(),
+    {ok, PL@}           = erlog:consult(PL@,"../erlog/assert.pl"),
+    {{succeed,_},PL@}   = erlog:prove(PL@, {assert,true, "X"}),
+    Clause = {assert, false, "X"},
+    Expect = "X",
+    assertFailure(PL@, Clause, Expect),
+    true.
+
 
 assert_not_true_test() ->
-    nyi.
+    {ok, PL@}		= erlog:new(),
+    {ok, PL@}           = erlog:consult(PL@,"../erlog/assert.pl"),
+    {{succeed,_},PL@}   = erlog:prove(PL@, {assertNot, false, "X"}),
+    assertFailure(PL@, {assertNot, true, "X"}, "X"),
+
+    true.
 
 assert_equals_test() ->
-    nyi.
+    {ok, PL@}		= erlog:new(),
+    {ok, PL@}           = erlog:consult(PL@,"../erlog/assert.pl"),
+    {{succeed,_},PL@}   = erlog:prove(PL@, {assertEqual, true,true, "X"}),
+    assertFailure(PL@, {assertEqual, false, true, "X"}, "X"),
+    true.
 
 assert_not_equals_test() ->
-    nyi.
+    {ok, PL@}		= erlog:new(),
+    {ok, PL@}           = erlog:consult(PL@,"../erlog/assert.pl"),
+    {{succeed,_},PL@}   = erlog:prove(PL@, {assertNotEqual, true,false, "X"}),
+    assertFailure(PL@, {assertNotEqual, false, false, "X"}, "X"),
+    true.
+
 
 assert_foreach_test() ->
     nyi.
