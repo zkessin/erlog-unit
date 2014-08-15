@@ -1,8 +1,8 @@
 %-*-Prolog-*-
 
 
-assert(true,_Msg) :- !.
-assert(false, Msg) :-
+assertTrue(true,_Msg) :- !.
+assertTrue(false, Msg) :-
     halt(Msg).
 
 

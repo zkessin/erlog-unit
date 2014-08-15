@@ -13,10 +13,11 @@ find_prolog_files_test() ->
     true.
     
 load_file_and_assertions_test() ->
-    {ok, PL}		= erlog:new(),
+    {ok, PL@}		= erlog:new(),
     File		= "example.pl",
-    {ok, PL1}		= erlog_unit:load_file_and_assertions(PL, File, ?DIR, ?TEST_DIR),
-    {{succeed,[]}, _}	= erlog:prove(PL1, {test, "TEST"}),
+    {ok, PL@}		= erlog_unit:load_file_and_assertions(PL@, File, ?DIR, ?TEST_DIR),
+    {ok, PL@}           = erlog:consult(PL@,"../erlog/assert.pl"),
+    {{succeed,[]}, _}	= erlog:prove(PL@, {test, "TEST"}),
     true.
 
 load_file_with_no_assertions_test() ->
@@ -30,15 +31,18 @@ find_tests_test() ->
     File		= "example.pl",
     {ok, PL@}		= erlog_unit:load_file_and_assertions(PL@, File, ?DIR, ?TEST_DIR),
 
-    ?assertMatch({ok, ["TEST"], _}, erlog_unit:find_tests(PL@)),    
+    ?assertMatch({ok, ["TEST","FAIL"], _}, erlog_unit:find_tests(PL@)),    
     true.
 
 spawn_and_execute_tests_test() ->
     {ok, PL@}		= erlog:new(),
     File		= "example.pl",
+    {ok, PL@}           = erlog:consult(PL@,"../erlog/assert.pl"),
     {ok, PL@}		= erlog_unit:load_file_and_assertions(PL@, File, ?DIR, ?TEST_DIR),
     {ok, Result}        = erlog_unit:execute_tests(PL@),
-    ?assertEqual([{"TEST",true}], Result),
+    ?assertEqual([{"TEST", true},
+		  {"FAIL", false}
+		 ], Result),
     true.
 
 
@@ -55,8 +59,8 @@ assertFailure(PL@, Clause, Expect) ->
 assert_true_test() ->
     {ok, PL@}		= erlog:new(),
     {ok, PL@}           = erlog:consult(PL@,"../erlog/assert.pl"),
-    {{succeed,_},PL@}   = erlog:prove(PL@, {assert,true, "X"}),
-    Clause = {assert, false, "X"},
+    {{succeed,_},PL@}   = erlog:prove(PL@, {assertTrue,true, "X"}),
+    Clause = {assertTrue, false, "X"},
     Expect = "X",
     assertFailure(PL@, Clause, Expect),
     true.
