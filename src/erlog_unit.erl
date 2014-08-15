@@ -23,3 +23,8 @@ load_file_and_assertions(PL, File, Dir, TestDir) ->
 	false ->
 	    {ok, PL@}
     end.
+
+find_tests(PL) ->
+    {{succeed, R}, PL@} = erlog:prove(PL, {findall, {'X'},{clause, {test, {'X'}}, {'Clause'}},{'Tests'}}),
+    ?debugFmt("~p", [R]),
+    {ok,proplists:get_value('Tests',R) , PL@}.
