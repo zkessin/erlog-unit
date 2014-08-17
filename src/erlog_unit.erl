@@ -5,6 +5,7 @@
 
 
 
+
 find_prolog_files(Dir) ->
     Path = Dir ++ "/*.pl",
     Files = filelib:wildcard(Path),

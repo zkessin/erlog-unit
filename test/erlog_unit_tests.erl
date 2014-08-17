@@ -6,6 +6,8 @@
 -define(TEST_DIR, "../test/test_prolog_files").
 -define(DIR(X),   "../test/test_prolog_files/" ++ X).
 
+
+
 find_prolog_files_test() ->
     Dir			= "../test/test_prolog_files",
     {ok, Files}		= erlog_unit:find_prolog_files(Dir),
