@@ -2,6 +2,8 @@
 -compile({parse_transform, seqbind}).
 -include_lib("eunit/include/eunit.hrl").
 -compile(export_all).
+-type test_name() ::string().
+-type test_result() :: {test_name(), boolean()}.
 
 
 
@@ -58,6 +60,10 @@ execute_tests(PL) ->
 			       execute(PL, TestName)
 		       end, Tests),
     {ok , Result}.
+
+-spec(get_failing_tests([test_result()]) -> [test_name()]).
+get_failing_tests(Tests) ->
+    [TestName|| {TestName, false} <- Tests].
 
 
 save_failing_tests(Dir,FailingTests) ->

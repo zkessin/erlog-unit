@@ -63,6 +63,7 @@ assertFailure(PL@, Clause, Expect) ->
 assert_true_test() ->
     {ok, PL@}		= erlog:new(),
     {ok, PL@}           = erlog:consult(PL@,"../erlog/assert.pl"),
+
     {{succeed,_},PL@}   = erlog:prove(PL@, {assertTrue,true, "X"}),
     Clause = {assertTrue, false, "X"},
     Expect = "X",
@@ -96,15 +97,34 @@ prop_load_last_failing_tests() ->
     ?FORALL(Tests,
 	    list(non_empty(list(choose(65,90)))),
 	    begin
+		delete_test_file(),
 		erlog_unit:save_failing_tests("/tmp", Tests),
-		{ok, Tests}=:= erlog_unit:load_failing_tests("/tmp")
-		
+		Res =  erlog_unit:load_failing_tests("/tmp"),
+		delete_test_file(),
+		{ok, Tests} =:= Res
 	    end).
 
+boolean() ->
+    elements([true,false]).
+
+prop_get_failing_tests() ->
+    ?FORALL(Tests,
+	    list({non_empty(list(choose(65,90))), boolean()}),
+	    begin
+		FailingTests =erlog_unit:get_failing_tests(Tests),
+		lists:all(fun(Test) ->
+				  {Test,false} =:= lists:keyfind(Test, 1, Tests)
+			  end, FailingTests)
+	    end).
+    
+
 failing_test_file_not_created_test() ->
-    file:delete(erlog_unit:make_failing_tests_file("/tmp")),
-    ?assertEqual({ok, []}, erlog_unit:load_failing_tests("/tmp")),
+    delete_test_file(),
+    ?assertEqual({ok, []}, (erlog_unit:load_failing_tests("/tmp"))),
     true.
+
+delete_test_file() ->
+    file:delete(erlog_unit:make_failing_tests_file("/tmp")).
 
 
 assert_foreach_test() ->
