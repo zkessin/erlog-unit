@@ -57,3 +57,21 @@ execute_tests(PL) ->
 			       execute(PL, TestName)
 		       end, Tests),
     {ok , Result}.
+
+
+save_failing_tests(Dir,FailingTests) ->
+    Failing = io_lib:format("%-*-Erlang-*-~n {failing_tests, ~p}.",[FailingTests]),
+    ok = file:write_file(make_failing_tests_file(Dir), Failing),
+    ok.
+
+make_failing_tests_file(Dir) -> Dir ++ "/.eunit_failing_tests".
+
+
+load_failing_tests(Dir) ->
+    case file:consult(make_failing_tests_file(Dir)) of
+	{ok, Data}  ->
+	    FailingTests = proplists:get_value(failing_tests, Data),
+	    {ok, FailingTests};
+	{error, enoent} ->
+	    {ok, []}
+    end.
