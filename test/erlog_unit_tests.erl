@@ -1,5 +1,7 @@
 -module(erlog_unit_tests).
+-include_lib("eqc/include/eqc.hrl").
 -include_lib("eunit/include/eunit.hrl").
+-include("erlog_test.hrl").
 -compile(export_all).
 -compile({parse_transform, seqbind}).
 -define(DIR,      "../test/test_prolog_files").
@@ -88,6 +90,20 @@ assert_not_equals_test() ->
     {ok, PL@}           = erlog:consult(PL@,"../erlog/assert.pl"),
     {{succeed,_},PL@}   = erlog:prove(PL@, {assertNotEqual, true,false, "X"}),
     assertFailure(PL@, {assertNotEqual, false, false, "X"}, "X"),
+    true.
+
+prop_load_last_failing_tests() ->
+    ?FORALL(Tests,
+	    list(non_empty(list(choose(65,90)))),
+	    begin
+		erlog_unit:save_failing_tests("/tmp", Tests),
+		{ok, Tests}=:= erlog_unit:load_failing_tests("/tmp")
+		
+	    end).
+
+failing_test_file_not_created_test() ->
+    file:delete(erlog_unit:make_failing_tests_file("/tmp")),
+    ?assertEqual({ok, []}, erlog_unit:load_failing_tests("/tmp")),
     true.
 
 
